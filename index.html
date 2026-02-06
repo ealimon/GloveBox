@@ -6,19 +6,19 @@
     <title>GloveBox | Car Maintenance</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans pb-10">
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
-    <nav class="bg-slate-800 p-4 text-white shadow-lg mb-6">
+    <nav class="bg-slate-800 p-4 text-white shadow-lg">
         <h1 class="text-xl font-bold text-center text-blue-400">🛠 GloveBox</h1>
     </nav>
 
-    <main class="max-w-md mx-auto px-4">
+    <main class="max-w-md mx-auto px-4 py-6 flex-grow w-full pb-20">
         <div class="bg-white p-6 rounded-xl shadow-md mb-6 border-t-4 border-blue-500">
             <h2 class="text-lg font-semibold mb-4 text-gray-700">Add New Service</h2>
             <form id="logForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Car Nickname</label>
-                    <input type="text" id="carName" placeholder="e.g. Silver Bullet or Honda CRV" class="w-full p-2 border rounded-lg outline-none focus:border-blue-500" required>
+                    <input type="text" id="carName" placeholder="e.g. Silver Bullet" class="w-full p-2 border rounded-lg outline-none focus:border-blue-500" required>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -52,58 +52,9 @@
             </div>
     </main>
 
+    <footer class="w-full py-6 text-center text-gray-400 text-sm">
+        <p>Design by <span class="font-semibold text-gray-600 text-blue-500">Limon Media</span></p>
+    </footer>
+
     <script>
-        const logForm = document.getElementById('logForm');
-        const logList = document.getElementById('logList');
-
-        document.addEventListener('DOMContentLoaded', displayLogs);
-
-        logForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const log = {
-                id: Date.now(),
-                carName: document.getElementById('carName').value, // NEW: Added car name
-                type: document.getElementById('serviceType').value,
-                mileage: document.getElementById('mileage').value,
-                date: document.getElementById('date').value
-            };
-
-            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            logs.push(log);
-            localStorage.setItem('carLogs', JSON.stringify(logs));
-            
-            logForm.reset();
-            displayLogs();
-        });
-
-        function displayLogs() {
-            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            logList.innerHTML = logs.sort((a,b) => b.id - a.id).map(log => `
-                <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-slate-700">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-2 py-1 rounded-md tracking-wider">${log.carName}</span>
-                            <p class="font-bold text-gray-800 mt-1">${log.type}</p>
-                            <p class="text-sm text-gray-500 italic">${new Date(log.date).toLocaleDateString()} • ${Number(log.mileage).toLocaleString()} miles</p>
-                        </div>
-                        <button onclick="deleteLog(${log.id})" class="text-gray-300 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function deleteLog(id) {
-            if(confirm("Delete this service record?")) {
-                let logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-                logs = logs.filter(log => log.id !== id);
-                localStorage.setItem('carLogs', JSON.stringify(logs));
-                displayLogs();
-            }
-        }
-    </script>
-</body>
-</html>
+        const logForm = document.
