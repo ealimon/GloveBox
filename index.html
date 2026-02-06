@@ -6,14 +6,14 @@
     <title>GloveBox | Car Maintenance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Prevents horizontal scrolling on some mobile browsers */
         body { overflow-x: hidden; }
+        .log-card { transition: all 0.2s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
     <nav class="bg-slate-800 p-4 text-white shadow-lg">
-        <h1 class="text-xl font-bold text-center text-blue-400 text-2xl tracking-tight">🛠 GloveBox</h1>
+        <h1 class="text-xl font-bold text-center text-blue-400 tracking-tight">🛠 GloveBox</h1>
     </nav>
 
     <main class="max-w-md mx-auto px-4 py-6 flex-grow w-full pb-12">
@@ -24,7 +24,7 @@
                 
                 <div>
                     <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Car Nickname</label>
-                    <input type="text" id="carName" placeholder="e.g. Silver Bullet" class="w-full p-3 border border-gray-200 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" required>
+                    <input type="text" id="carName" placeholder="e.g. Silver Bullet" class="w-full p-3 border border-gray-200 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -39,3 +39,116 @@
                             <option>Other</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Mileage</label>
+                        <input type="number" id="mileage" placeholder="55000" class="w-full p-3 border border-gray-200 rounded-lg outline-none focus:border-blue-500" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1 tracking-widest">Date</label>
+                    <input type="date" id="date" class="w-full p-3 border border-gray-200 rounded-lg outline-none focus:border-blue-500" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg active:scale-95 transition-all mt-2">Save Entry</button>
+            </form>
+        </div>
+
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h2 class="text-lg font-semibold text-gray-700">Service History</h2>
+            <span id="logCount" class="text-xs font-bold text-gray-400 bg-gray-200 px-2 py-1 rounded-full">0 Logs</span>
+        </div>
+        
+        <div id="logList" class="space-y-3">
+            </div>
+    </main>
+
+    <footer class="w-full py-8 text-center text-gray-400 text-sm mt-auto">
+        <p>Design by <span class="font-bold text-blue-500 uppercase tracking-tighter">Limon Media</span></p>
+    </footer>
+
+    <script>
+        const logForm = document.getElementById('logForm');
+        const logList = document.getElementById('logList');
+        const logCount = document.getElementById('logCount');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            displayLogs();
+        });
+
+        logForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const log = {
+                id: Date.now(),
+                carName: document.getElementById('carName').value,
+                type: document.getElementById('serviceType').value,
+                mileage: document.getElementById('mileage').value,
+                date: document.getElementById('date').value
+            };
+
+            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
+            logs.push(log);
+            localStorage.setItem('carLogs', JSON.stringify(logs));
+            
+            const currentCar = document.getElementById('carName').value;
+            logForm.reset();
+            document.getElementById('carName').value = currentCar;
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            
+            displayLogs();
+        });
+
+        function displayLogs() {
+            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
+            logCount.innerText = `${logs.length} ${logs.length === 1 ? 'Log' : 'Logs'}`;
+
+            if (logs.length === 0) {
+                logList.innerHTML = `<div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 italic">No records yet.</div>`;
+                return;
+            }
+
+            logList.innerHTML = logs.sort((a,b) => b.id - a.id).map(log => {
+                // Ensure date displays correctly across all devices
+                const dateObj = new Date(log.date + 'T00:00:00');
+                const formattedDate = dateObj.toLocaleDateString(undefined, { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+
+                return `
+                <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-slate-800 log-card">
+                    <div class="flex justify-between items-start">
+                        <div class="overflow-hidden">
+                            <span class="text-[9px] font-black uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 tracking-tighter italic">
+                                ${log.carName}
+                            </span>
+                            <p class="font-bold text-gray-800 mt-1.5">${log.type}</p>
+                            <p class="text-xs text-gray-500 font-medium tracking-tight">
+                                ${formattedDate} • ${Number(log.mileage).toLocaleString()} miles
+                            </p>
+                        </div>
+                        <button onclick="deleteLog(${log.id})" class="text-gray-300 hover:text-red-500 transition-colors p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function deleteLog(id) {
+            if(confirm("Permanently delete this record?")) {
+                let logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
+                logs = logs.filter(log => log.id !== id);
+                localStorage.setItem('carLogs', JSON.stringify(logs));
+                displayLogs();
+            }
+        }
+    </script>
+</body>
+</html>
