@@ -1,31 +1,32 @@
-# 🛠 GloveBox | Car Maintenance Tracker
+# 🛠 GloveBox | Professional Car Maintenance Tracker
 
-GloveBox is a lightweight, mobile-first web application designed to help you track service history for multiple vehicles. No accounts, no subscriptions, and no heavy databases—just a clean interface that saves your data directly to your device.
+**GloveBox** is a high-performance, privacy-first mobile web application designed by **Limon Media**. It allows vehicle owners to track service history across multiple cars with zero data tracking, zero accounts, and zero latency.
 
-## ✨ Features
-- **Multi-Car Support:** Assign nicknames to each service log.
-- **Service Categories:** Track oil changes, tire rotations, brakes, and more.
-- **Local Storage:** Your data stays private on your phone (no server-side storage).
-- **Mobile Optimized:** Designed to look and feel like a native app.
 
-## 🚀 How to Use (Install on your Phone)
-To get the best experience, you should add this app to your mobile home screen:
 
-### On iPhone (Safari)
-1. Open the app URL in Safari.
-2. Tap the **Share** button (the square with an arrow pointing up).
-3. Scroll down and tap **"Add to Home Screen"**.
+## 🌟 Key Features
+- **Privacy-First:** Data is stored locally on your device via HTML5 LocalStorage. Your data never touches a server.
+- **Multi-Vehicle Support:** Easily tag entries by car nickname.
+- **Smart Defaults:** Automatically suggests today's date and remembers your last-used vehicle for rapid entry.
+- **Data Portability:** Export your entire history to a CSV file for backup or insurance purposes.
+- **PWA Ready:** Optimized for "Add to Home Screen" to provide a native app-like experience.
 
-### On Android (Chrome)
-1. Open the app URL in Chrome.
-2. Tap the **three dots (menu)** in the top right corner.
-3. Tap **"Install app"** or **"Add to Home screen"**.
+## 📥 Installation
+GloveBox is a Progressive Web App (PWA). No App Store download is required.
 
-## 🛠 Tech Stack
-- **Styling:** Tailwind CSS (via CDN)
-- **Logic:** Vanilla JavaScript (ES6)
-- **Data:** HTML5 LocalStorage
-- **Design:** By Limon Media
+1. **Visit the App:** Navigate to your hosted URL.
+2. **Add to Home Screen:**
+   - **iOS (Safari):** Tap the Share icon (square with arrow) -> "Add to Home Screen."
+   - **Android (Chrome):** Tap the Menu (three dots) -> "Install App" or "Add to Home Screen."
 
-## 📋 License
-This project is open-source and free to use.
+## 🛠 Technical Specifications
+- **Framework:** Vanilla JavaScript (ES6+)
+- **Styling:** Tailwind CSS 3.0
+- **Storage:** Browser LocalStorage API
+- **Deployment:** Optimized for GitHub Pages or static hosting.
+
+## 💼 Business Use
+This application is part of the **Limon Media** digital product suite. Use it as a personal utility or as a base template for client projects.
+
+---
+Designed with ❤️ by [Limon Media](https://www.Limon.Media)
