@@ -56,14 +56,14 @@
                     <input type="date" id="date" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500" required>
                 </div>
                 
-                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-xs text-white">Save Service Log</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-xs">Save Service Log</button>
             </form>
         </div>
 
         <div class="flex justify-between items-end mb-4 px-1">
             <div>
-                <h2 class="text-lg font-bold text-slate-800">Service History</h2>
-                <p id="logCount" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">0 Logs Total</p>
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Service History</h2>
+                <p id="logCount" class="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">0 Logs Total</p>
             </div>
             <button onclick="exportToCSV()" class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition">
                 📥 Export CSV
@@ -73,8 +73,8 @@
         <div id="logList" class="space-y-3">
             </div>
 
-        <div class="mt-10 text-center">
-            <button onclick="clearAllData()" class="text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-red-400 transition">
+        <div class="mt-12 text-center">
+            <button onclick="clearAllData()" class="text-[11px] font-bold text-slate-500 uppercase tracking-widest hover:text-red-600 transition p-2">
                 Clear All Local Data
             </button>
         </div>
@@ -124,15 +124,15 @@
                 const dateObj = new Date(log.date + 'T00:00:00');
                 const formattedDate = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                 return `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 log-card animate-in fade-in duration-300">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 log-card animate-in fade-in duration-300">
                     <div class="flex justify-between items-start">
                         <div class="overflow-hidden">
                             <span class="text-[9px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded tracking-tighter italic">${log.carName}</span>
-                            <p class="font-bold text-slate-800 mt-2 text-base">${log.type}</p>
-                            <p class="text-xs text-slate-500 font-medium">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
+                            <p class="font-bold text-slate-800 mt-2 text-lg leading-tight tracking-tight">${log.type}</p>
+                            <p class="text-sm text-slate-500 font-medium">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
                         </div>
                         <button onclick="deleteLog(${log.id})" class="text-slate-300 hover:text-red-500 transition-colors p-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                         </button>
