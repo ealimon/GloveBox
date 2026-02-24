@@ -13,7 +13,7 @@
         body { -webkit-tap-highlight-color: transparent; }
         .log-card { transition: transform 0.1s ease; }
         .log-card:active { transform: scale(0.98); }
-        input, select { font-size: 16px !important; } /* Prevents iOS zoom on focus */
+        input, select { font-size: 16px !important; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans flex flex-col min-h-screen text-slate-900">
@@ -56,7 +56,7 @@
                     <input type="date" id="date" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500" required>
                 </div>
                 
-                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-xs">Save Service Log</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-xs text-white">Save Service Log</button>
             </form>
         </div>
 
@@ -89,16 +89,13 @@
         const logList = document.getElementById('logList');
         const logCount = document.getElementById('logCount');
 
-        // App Start
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
             displayLogs();
         });
 
-        // Add Entry
         logForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            
             const log = {
                 id: Date.now(),
                 carName: document.getElementById('carName').value.trim(),
@@ -106,47 +103,33 @@
                 mileage: document.getElementById('mileage').value,
                 date: document.getElementById('date').value
             };
-
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
             logs.push(log);
             localStorage.setItem('carLogs', JSON.stringify(logs));
-            
-            // UI Feedback
             const currentCar = document.getElementById('carName').value;
             logForm.reset();
             document.getElementById('carName').value = currentCar;
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            
             displayLogs();
         });
 
-        // Display Data
         function displayLogs() {
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
             logCount.innerText = `${logs.length} ${logs.length === 1 ? 'Log' : 'Logs'} Total`;
-
             if (logs.length === 0) {
                 logList.innerHTML = `<div class="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 italic text-sm">No records found.</div>`;
                 return;
             }
-
             logList.innerHTML = logs.sort((a,b) => b.id - a.id).map(log => {
                 const dateObj = new Date(log.date + 'T00:00:00');
-                const formattedDate = dateObj.toLocaleDateString(undefined, { 
-                    month: 'short', day: 'numeric', year: 'numeric' 
-                });
-
+                const formattedDate = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                 return `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 log-card">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 log-card animate-in fade-in duration-300">
                     <div class="flex justify-between items-start">
                         <div class="overflow-hidden">
-                            <span class="text-[9px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded tracking-tighter italic">
-                                ${log.carName}
-                            </span>
+                            <span class="text-[9px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded tracking-tighter italic">${log.carName}</span>
                             <p class="font-bold text-slate-800 mt-2 text-base">${log.type}</p>
-                            <p class="text-xs text-slate-500 font-medium">
-                                ${formattedDate} • ${Number(log.mileage).toLocaleString()} miles
-                            </p>
+                            <p class="text-xs text-slate-500 font-medium">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
                         </div>
                         <button onclick="deleteLog(${log.id})" class="text-slate-300 hover:text-red-500 transition-colors p-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -158,14 +141,11 @@
             }).join('');
         }
 
-        // Export Function
         function exportToCSV() {
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
             if (logs.length === 0) return alert("No logs to export!");
-
             let csv = "Date,Car,Service,Mileage\n";
             logs.forEach(l => csv += `${l.date},${l.carName},${l.type},${l.mileage}\n`);
-
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -175,9 +155,9 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            alert("Success! Check your device 'Downloads' folder for the CSV file.");
         }
 
-        // Delete Individual
         function deleteLog(id) {
             if(confirm("Delete this record?")) {
                 let logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
@@ -187,7 +167,6 @@
             }
         }
 
-        // Wipe Data
         function clearAllData() {
             if(confirm("DANGER: This will permanently delete ALL logs from this device. Proceed?")) {
                 localStorage.removeItem('carLogs');
