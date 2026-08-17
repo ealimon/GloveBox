@@ -39,19 +39,26 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
-                        <select id="serviceType" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                        <select id="serviceType" onchange="toggleCustomServiceInput()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
                             <option>Oil Change</option>
                             <option>Tire Rotation</option>
                             <option>Brakes</option>
                             <option>Air Filter</option>
                             <option>Inspection</option>
                             <option>Repair</option>
+                            <option value="custom">Custom (Enter manually)...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Mileage</label>
                         <input type="number" id="mileage" placeholder="55000" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
                     </div>
+                </div>
+
+                <!-- Custom Service Input (Hidden by default) -->
+                <div id="customServiceContainer" class="hidden">
+                    <label class="block text-xs font-bold uppercase text-blue-600 mb-1.5 ml-1">Specify Custom Service</label>
+                    <input type="text" id="customService" placeholder="e.g. Spark Plugs, Coolant Flush" class="w-full p-3.5 bg-blue-50/50 border border-blue-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base transition">
                 </div>
 
                 <div>
@@ -96,28 +103,55 @@
         const logForm = document.getElementById('logForm');
         const logList = document.getElementById('logList');
         const logCount = document.getElementById('logCount');
+        const serviceSelect = document.getElementById('serviceType');
+        const customContainer = document.getElementById('customServiceContainer');
+        const customInput = document.getElementById('customService');
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
             displayLogs();
         });
 
+        function toggleCustomServiceInput() {
+            if (serviceSelect.value === 'custom') {
+                customContainer.classList.remove('hidden');
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customContainer.classList.add('hidden');
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
         logForm.addEventListener('submit', (e) => {
             e.preventDefault();
+
+            let finalServiceType = serviceSelect.value;
+            if (finalServiceType === 'custom') {
+                finalServiceType = customInput.value.trim() || 'Custom Service';
+            }
+            
             const log = {
                 id: Date.now(),
                 carName: document.getElementById('carName').value.trim(),
-                type: document.getElementById('serviceType').value,
+                type: finalServiceType,
                 mileage: document.getElementById('mileage').value,
                 date: document.getElementById('date').value
             };
+
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
             logs.push(log);
             localStorage.setItem('carLogs', JSON.stringify(logs));
+
             const currentCar = document.getElementById('carName').value;
             logForm.reset();
+            
+            // Restore defaults
             document.getElementById('carName').value = currentCar;
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            toggleCustomServiceInput();
+            
             displayLogs();
         });
 
@@ -155,7 +189,10 @@
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
             if (logs.length === 0) return alert("No logs to export!");
             let csv = "Date,Car,Service,Mileage\n";
-            logs.forEach(l => csv += `${l.date},${l.carName},${l.type},${l.mileage}\n`);
+            logs.forEach(l => {
+                // Wrap text in quotes to handle any commas in custom service names
+                csv += `"${l.date}","${l.carName.replace(/"/g, '""')}","${l.type.replace(/"/g, '""')}",${l.mileage}\n`;
+            });
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
