@@ -169,11 +169,12 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 log-card animate-in fade-in duration-300">
                     <div class="flex justify-between items-start">
                         <div class="overflow-hidden">
-                            <span class="text-xs font-black uppercase bg-slate-900 text-white px-2.5 py-1 rounded tracking-tight italic inline-block">
+                            <!-- Larger Car Nickname Badge -->
+                            <span class="text-sm font-black uppercase bg-slate-900 text-white px-3.5 py-1.5 rounded-lg tracking-wide italic inline-block shadow-sm">
                                 ${log.carName}
                             </span>
-                            <p class="font-bold text-slate-800 mt-2 text-xl leading-snug tracking-tight">${log.type}</p>
-                            <p class="text-base text-slate-600 font-medium mt-0.5">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
+                            <p class="font-bold text-slate-800 mt-2.5 text-xl leading-snug tracking-tight">${log.type}</p>
+                            <p class="text-base text-slate-600 font-medium mt-1">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
                         </div>
                         <button onclick="deleteLog(${log.id})" class="text-slate-300 hover:text-red-500 transition-colors p-2" aria-label="Delete entry">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,7 +191,6 @@
             if (logs.length === 0) return alert("No logs to export!");
             let csv = "Date,Car,Service,Mileage\n";
             logs.forEach(l => {
-                // Wrap text in quotes to handle any commas in custom service names
                 csv += `"${l.date}","${l.carName.replace(/"/g, '""')}","${l.type.replace(/"/g, '""')}",${l.mileage}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv' });
