@@ -1,0 +1,36 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    # Authenticate via App Store Connect API Key
+    api_key = app_store_connect_api_key(
+      key_id: ENV["KEY_ID"],
+      issuer_id: ENV["ISSUER_ID"],
+      key_content: ENV["KEY_CONTENT"],
+      is_key_content_base64: false,
+      in_house: false
+    )
+
+    # Automatically fetch or create distribution certificates and profiles
+    match(
+      type: "appstore",
+      app_identifier: ENV["BUNDLE_ID"],
+      api_key: api_key,
+      readonly: false
+    )
+
+    # Build the iOS app package (.ipa)
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store"
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
