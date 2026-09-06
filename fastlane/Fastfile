@@ -12,12 +12,16 @@ platform :ios do
       in_house: false
     )
 
-    # Automatically fetch or create distribution certificates and profiles
-    match(
-      type: "appstore",
+    # Create temporary CI keychain on the GitHub runner
+    setup_ci if ENV["CI"]
+
+    # Download or generate Apple Distribution certificate directly
+    get_certificates(api_key: api_key)
+
+    # Download or generate App Store Provisioning Profile directly
+    get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
-      api_key: api_key,
-      readonly: false
+      api_key: api_key
     )
 
     # Build the iOS app package (.ipa)
