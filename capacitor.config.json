@@ -1,1 +1,6 @@
-
+{
+  "appId": "com.limonmedia.glovebox",
+  "appName": "GloveBox",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
