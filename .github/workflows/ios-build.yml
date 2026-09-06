@@ -1,0 +1,44 @@
+name: Build & Upload to App Store Connect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies & Setup Capacitor
+        run: |
+          npm install
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Setup Ruby for Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install Fastlane
+        run: gem install fastlane
+
+      - name: Build and Upload via Fastlane
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          BUNDLE_ID: "com.limonmedia.glovebox"
+        run: |
+          echo "$KEY_CONTENT" > AuthKey.p8
+          fastlane run app_store_connect_api_key \
+            key_id:"$KEY_ID" \
+            issuer_id:"$ISSUER_ID" \
+            key_filepath:"./AuthKey.p8"
+          fastlane ios beta
