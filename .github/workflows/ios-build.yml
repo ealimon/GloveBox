@@ -2,6 +2,15 @@ name: Build & Upload to App Store Connect
 
 on:
   workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Fastlane lane to run'
+        required: true
+        default: 'beta'
+        type: choice
+        options:
+          - beta
+          - generate_p12
 
 jobs:
   build-ios:
@@ -30,12 +39,22 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Build and Upload via Fastlane
+      - name: Run Fastlane
         env:
           KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          DISTRIBUTION_P12_BASE64: ${{ secrets.DISTRIBUTION_P12_BASE64 }}
+          DISTRIBUTION_P12_PASSWORD: ${{ secrets.DISTRIBUTION_P12_PASSWORD }}
           BUNDLE_ID: "com.limonmedia.glovebox"
         run: |
-          fastlane ios beta
+          fastlane ios ${{ github.event.inputs.lane }}
+
+      - name: Upload generated certificate (generate_p12 lane only)
+        if: ${{ github.event.inputs.lane == 'generate_p12' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-cert
+          path: cert_base64.txt
+          retention-days: 1
