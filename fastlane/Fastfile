@@ -26,7 +26,7 @@ platform :ios do
       lock_when_sleeps: false
     )
 
-    # 3. Explicitly install the certificate and private key into the temporary keychain
+    # 3. Explicitly install the certificate into the temporary keychain
     get_certificates(
       api_key: api_key,
       keychain_path: keychain_db,
@@ -39,21 +39,12 @@ platform :ios do
       api_key: api_key
     )
 
-    # 5. Tell the Xcode project to use manual signing with the downloaded profile
-    update_code_signing_settings(
-      path: "ios/App/App.xcodeproj",
-      use_automatic_signing: false,
-      team_id: ENV["ISSUER_ID"],
-      bundle_identifier: ENV["BUNDLE_ID"],
-      code_sign_identity: "Apple Distribution",
-      profile_name: ENV["SIGH_NAME"]
-    )
-
-    # 6. Compile the archive
+    # 5. Compile the archive with manual signing injected into xcodebuild
     build_app(
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
       export_method: "app-store",
+      xcargs: "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{ENV["SIGH_NAME"]}' CODE_SIGN_IDENTITY='Apple Distribution'",
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {
@@ -62,7 +53,7 @@ platform :ios do
       }
     )
 
-    # 7. Upload to TestFlight
+    # 6. Upload directly to TestFlight
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
