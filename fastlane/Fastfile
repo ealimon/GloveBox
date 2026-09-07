@@ -1,3 +1,5 @@
+require "base64"
+
 default_platform(:ios)
 
 platform :ios do
@@ -6,7 +8,11 @@ platform :ios do
     app_identifier = "com.limonmedia.glovebox"
     team_id = ENV["TEAM_ID"]
 
-    UI.user_error!("Missing TEAM_ID secret — add your Apple Developer Team ID as a repo secret named TEAM_ID") if team_id.nil? || team_id.empty?
+    UI.user_error!("Missing TEAM_ID secret — add your Apple Developer Team ID as a repo secret named TEAM_ID") if team_id.to_s.empty?
+
+    p12_base64 = ENV["DISTRIBUTION_P12_BASE64"]
+    p12_password = ENV["DISTRIBUTION_P12_PASSWORD"]
+    UI.user_error!("Missing DISTRIBUTION_P12_BASE64 / DISTRIBUTION_P12_PASSWORD secrets — run the generate_p12 lane once first, see its output for what to store") if p12_base64.to_s.empty? || p12_password.to_s.empty?
 
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
@@ -16,9 +22,27 @@ platform :ios do
       in_house: false
     )
 
-    # Fetch (or create) a distribution certificate + App Store provisioning profile
-    get_certificates(
-      api_key: api_key
+    keychain_name = "fastlane_tmp_keychain"
+    keychain_password = SecureRandom.hex(8)
+
+    create_keychain(
+      name: keychain_name,
+      password: keychain_password,
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
+    )
+
+    # Reuse the ONE stored distribution certificate instead of asking Apple for a new one every run
+    p12_path = File.expand_path("dist_cert.p12")
+    File.open(p12_path, "wb") { |f| f.write(Base64.decode64(p12_base64)) }
+
+    import_certificate(
+      certificate_path: p12_path,
+      certificate_password: p12_password,
+      keychain_name: keychain_name,
+      keychain_password: keychain_password
     )
 
     get_provisioning_profile(
@@ -29,7 +53,7 @@ platform :ios do
 
     # sigh sets these directly - more reliable than guessing its dynamically-named ENV key
     profile_name = ENV["SIGH_NAME"]
-    UI.user_error!("get_provisioning_profile did not set SIGH_NAME - profile fetch likely failed") if profile_name.nil? || profile_name.empty?
+    UI.user_error!("get_provisioning_profile did not set SIGH_NAME - profile fetch likely failed") if profile_name.to_s.empty?
 
     # Point the generated Xcode project at that profile/cert (manual signing)
     update_code_signing_settings(
@@ -65,7 +89,7 @@ platform :ios do
     )
   end
 
-  desc "Generate and bundle a permanent distribution certificate (manual/local use only)"
+  desc "One-time: mint a Distribution certificate and export it as base64 for reuse in the beta lane"
   lane :generate_p12 do
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
@@ -91,13 +115,14 @@ platform :ios do
       api_key: api_key
     )
 
-    p12_path = File.expand_path("~/Desktop/dist_cert.p12")
+    p12_path = File.expand_path("dist_cert.p12")
     p12_password = "GloveBoxPassword123!"
 
     sh("security export -k ~/Library/Keychains/#{keychain_name}-db -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
-    sh("base64 -i #{p12_path} > /tmp/cert_base64.txt")
-    puts "--- COPY EVERYTHING BETWEEN THESE LINES ---"
-    puts File.read("/tmp/cert_base64.txt")
-    puts "--- END OF CERTIFICATE BASE64 ---"
+    sh("base64 -i #{p12_path} -o #{File.expand_path('cert_base64.txt')}")
+
+    UI.important("Certificate generated. This workflow run will upload 'cert_base64.txt' as a build artifact (not printed to the log).")
+    UI.important("Download it, then store its full contents as repo secret DISTRIBUTION_P12_BASE64,")
+    UI.important("and store the password '#{p12_password}' as repo secret DISTRIBUTION_P12_PASSWORD.")
   end
 end
