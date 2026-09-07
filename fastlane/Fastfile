@@ -111,14 +111,18 @@ platform :ios do
       lock_when_sleeps: false
     )
 
+    keychain_path = File.expand_path("~/Library/Keychains/#{keychain_name}-db")
+
     get_certificates(
-      api_key: api_key
+      api_key: api_key,
+      keychain_path: keychain_path,
+      keychain_password: keychain_password
     )
 
     p12_path = File.expand_path("dist_cert.p12")
     p12_password = "GloveBoxPassword123!"
 
-    sh("security export -k ~/Library/Keychains/#{keychain_name}-db -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
+    sh("security export -k '#{keychain_path}' -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
     sh("base64 -i #{p12_path} -o #{File.expand_path('cert_base64.txt')}")
 
     UI.important("Certificate generated. This workflow run will upload 'cert_base64.txt' as a build artifact (not printed to the log).")
