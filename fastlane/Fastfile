@@ -119,13 +119,18 @@ platform :ios do
       keychain_password: keychain_password
     )
 
-    p12_path = File.expand_path("dist_cert.p12")
+    # Anchor to the repo root (one level up from this Fastfile) regardless of
+    # fastlane's own working directory, so the workflow's upload-artifact step can find it
+    repo_root = File.expand_path("..", __dir__)
+    p12_path = File.join(repo_root, "dist_cert.p12")
+    cert_b64_path = File.join(repo_root, "cert_base64.txt")
     p12_password = "GloveBoxPassword123!"
 
-    sh("security export -k '#{keychain_path}' -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
-    sh("base64 -i #{p12_path} -o #{File.expand_path('cert_base64.txt')}")
+    sh("security export -k '#{keychain_path}' -t all -f pkcs12 -P '#{p12_password}' -o '#{p12_path}'")
+    sh("base64 -i '#{p12_path}' -o '#{cert_b64_path}'")
 
-    UI.important("Certificate generated. This workflow run will upload 'cert_base64.txt' as a build artifact (not printed to the log).")
+    UI.important("Certificate generated at #{cert_b64_path}.")
+    UI.important("This workflow run will upload 'cert_base64.txt' as a build artifact (not printed to the log).")
     UI.important("Download it, then store its full contents as repo secret DISTRIBUTION_P12_BASE64,")
     UI.important("and store the password '#{p12_password}' as repo secret DISTRIBUTION_P12_PASSWORD.")
   end
