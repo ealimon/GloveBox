@@ -12,12 +12,10 @@ platform :ios do
       in_house: false
     )
 
-    # 2. Set up an explicit, unlocked temporary keychain
-    keychain_name = "fastlane_tmp_keychain"
+    # 2. Create the temporary keychain and capture its full system path
     keychain_password = "glovebox_build_temp"
-
-    create_keychain(
-      name: keychain_name,
+    keychain_path = create_keychain(
+      name: "fastlane_tmp_keychain",
       password: keychain_password,
       default_keychain: true,
       unlock: true,
@@ -25,14 +23,14 @@ platform :ios do
       lock_when_sleeps: false
     )
 
-    # 3. Download or generate certificate into this keychain
+    # 3. Download or generate certificate targeting the exact keychain path
     get_certificates(
       api_key: api_key,
-      keychain_path: keychain_name,
+      keychain_path: keychain_path,
       keychain_password: keychain_password
     )
 
-    # 4. Fetch the provisioning profile
+    # 4. Fetch App Store Provisioning Profile
     get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
