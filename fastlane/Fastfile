@@ -12,27 +12,16 @@ platform :ios do
       in_house: false
     )
 
-    # Create and unlock a temporary keychain for the runner
-    keychain_name = "fastlane_tmp_keychain"
-    keychain_password = "glovebox_build_temp"
+    # Automatically creates and unlocks a dedicated temporary CI keychain
+    keychain_path = setup_ci if ENV["CI"]
 
-    create_keychain(
-      name: keychain_name,
-      password: keychain_password,
-      default_keychain: true,
-      unlock: true,
-      timeout: 3600,
-      lock_when_sleeping: false
-    )
-
-    # Download or generate Apple Distribution certificate and store in this keychain
+    # Download or generate certificate into the unlocked CI keychain
     get_certificates(
       api_key: api_key,
-      keychain_path: keychain_name,
-      keychain_password: keychain_password
+      keychain_path: keychain_path
     )
 
-    # Download or generate App Store Provisioning Profile
+    # Download or generate provisioning profile
     get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
@@ -45,7 +34,7 @@ platform :ios do
       export_method: "app-store"
     )
 
-    # Upload to TestFlight
+    # Upload directly to TestFlight
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
