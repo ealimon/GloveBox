@@ -3,7 +3,7 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
-    # Authenticate via App Store Connect API Key
+    # 1. Authenticate via App Store Connect API Key
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
       issuer_id: ENV["ISSUER_ID"],
@@ -12,29 +12,40 @@ platform :ios do
       in_house: false
     )
 
-    # Automatically creates and unlocks a dedicated temporary CI keychain
-    keychain_path = setup_ci if ENV["CI"]
+    # 2. Create and unlock a temporary keychain for the headless runner
+    keychain_name = "fastlane_tmp_keychain"
+    keychain_password = "glovebox_build_temp"
 
-    # Download or generate certificate into the unlocked CI keychain
-    get_certificates(
-      api_key: api_key,
-      keychain_path: keychain_path
+    create_keychain(
+      name: keychain_name,
+      password: keychain_password,
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeping: false
     )
 
-    # Download or generate provisioning profile
+    # 3. Download or generate certificate into this keychain
+    get_certificates(
+      api_key: api_key,
+      keychain_path: keychain_name,
+      keychain_password: keychain_password
+    )
+
+    # 4. Download or generate App Store Provisioning Profile
     get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
     )
 
-    # Build the iOS app package (.ipa)
+    # 5. Compile the iOS app archive (.ipa)
     build_app(
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
       export_method: "app-store"
     )
 
-    # Upload directly to TestFlight
+    # 6. Upload directly to TestFlight
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
