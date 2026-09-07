@@ -27,14 +27,19 @@ platform :ios do
       team_id: team_id
     )
 
+    # sigh sets these directly - more reliable than guessing its dynamically-named ENV key
+    profile_name = ENV["SIGH_NAME"]
+    UI.user_error!("get_provisioning_profile did not set SIGH_NAME - profile fetch likely failed") if profile_name.nil? || profile_name.empty?
+
     # Point the generated Xcode project at that profile/cert (manual signing)
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "ios/App/App.xcodeproj",
+      targets: ["App"],
       team_id: team_id,
       code_sign_identity: "Apple Distribution",
       bundle_identifier: app_identifier,
-      profile_name: ENV["sigh_#{app_identifier}_appstore_profile-name"]
+      profile_name: profile_name
     )
 
     # Bump the build number so each upload is unique
@@ -49,7 +54,7 @@ platform :ios do
       export_method: "app-store",
       export_options: {
         provisioningProfiles: {
-          app_identifier => ENV["sigh_#{app_identifier}_appstore_profile-name"]
+          app_identifier => profile_name
         }
       }
     )
