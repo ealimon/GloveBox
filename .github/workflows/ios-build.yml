@@ -25,6 +25,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
+          bundler-cache: false
 
       - name: Install Fastlane
         run: gem install fastlane
@@ -34,11 +35,7 @@ jobs:
           KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           BUNDLE_ID: "com.limonmedia.glovebox"
         run: |
-          echo "$KEY_CONTENT" > AuthKey.p8
-          fastlane run app_store_connect_api_key \
-            key_id:"$KEY_ID" \
-            issuer_id:"$ISSUER_ID" \
-            key_filepath:"./AuthKey.p8"
           fastlane ios beta
