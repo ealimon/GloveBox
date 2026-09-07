@@ -33,10 +33,11 @@ platform :ios do
       keychain_password: keychain_password
     )
 
-    # 4. Fetch the provisioning profile
-    profile = get_provisioning_profile(
+    # 4. Force regenerate profile to pair with the newly installed certificate
+    get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
-      api_key: api_key
+      api_key: api_key,
+      force: true
     )
 
     # 5. Compile the archive with manual signing injected into xcodebuild
