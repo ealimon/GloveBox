@@ -1,1 +1,4 @@
+app_identifier("com.limonmedia.glovebox")
+team_id(ENV["TEAM_ID"])
+itc_team_id(ENV["TEAM_ID"])
 
