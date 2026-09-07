@@ -12,7 +12,7 @@ platform :ios do
       in_house: false
     )
 
-    # 2. Create and unlock a temporary keychain for the headless runner
+    # 2. Set up an explicit, unlocked temporary keychain
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = "glovebox_build_temp"
 
@@ -25,20 +25,20 @@ platform :ios do
       lock_when_sleeping: false
     )
 
-    # 3. Download or generate certificate into this keychain
+    # 3. Generate certificate and explicitly target this keychain
     get_certificates(
       api_key: api_key,
       keychain_path: keychain_name,
       keychain_password: keychain_password
     )
 
-    # 4. Download or generate App Store Provisioning Profile
+    # 4. Fetch the provisioning profile
     get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
     )
 
-    # 5. Compile the iOS app archive (.ipa)
+    # 5. Build the archive
     build_app(
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
