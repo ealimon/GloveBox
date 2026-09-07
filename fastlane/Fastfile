@@ -1,9 +1,8 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Push a new beta build to TestFlight"
-  lane :beta do
-    # 1. Authenticate via App Store Connect API Key
+  desc "Generate and bundle a permanent distribution certificate"
+  lane :generate_p12 do
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
       issuer_id: ENV["ISSUER_ID"],
@@ -12,9 +11,7 @@ platform :ios do
       in_house: false
     )
 
-    # 2. Define the exact path to the temporary keychain file
     keychain_name = "fastlane_tmp_keychain"
-    keychain_db = File.expand_path("~/Library/Keychains/#{keychain_name}-db")
     keychain_password = "glovebox_build_temp"
 
     create_keychain(
@@ -26,38 +23,21 @@ platform :ios do
       lock_when_sleeps: false
     )
 
-    # 3. Explicitly install the certificate into the temporary keychain
+    # 1. Generate or fetch certificate
     get_certificates(
-      api_key: api_key,
-      keychain_path: keychain_db,
-      keychain_password: keychain_password
+      api_key: api_key
     )
 
-    # 4. Force regenerate profile to pair with the newly installed certificate
-    get_provisioning_profile(
-      app_identifier: ENV["BUNDLE_ID"],
-      api_key: api_key,
-      force: true
-    )
+    # 2. Export the installed certificate + private key into a .p12
+    p12_path = File.expand_path("~/Desktop/dist_cert.p12")
+    p12_password = "GloveBoxPassword123!"
 
-    # 5. Compile the archive with manual signing injected into xcodebuild
-    build_app(
-      workspace: "ios/App/App.xcworkspace",
-      scheme: "App",
-      export_method: "app-store",
-      xcargs: "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{ENV["SIGH_NAME"]}' CODE_SIGN_IDENTITY='Apple Distribution'",
-      export_options: {
-        signingStyle: "manual",
-        provisioningProfiles: {
-          ENV["BUNDLE_ID"] => ENV["SIGH_NAME"]
-        }
-      }
-    )
+    sh("security export -k ~/Library/Keychains/#{keychain_name}-db -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
 
-    # 6. Upload directly to TestFlight
-    upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: true
-    )
+    # 3. Print the base64 string directly in the log
+    sh("base64 -i #{p12_path} > /tmp/cert_base64.txt")
+    puts "--- COPY EVERYTHING BETWEEN THESE LINES ---"
+    puts File.read("/tmp/cert_base64.txt")
+    puts "--- END OF CERTIFICATE BASE64 ---"
   end
 end
