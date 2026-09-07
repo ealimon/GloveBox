@@ -22,10 +22,10 @@ platform :ios do
       default_keychain: true,
       unlock: true,
       timeout: 3600,
-      lock_when_sleeping: false
+      lock_when_sleeps: false
     )
 
-    # 3. Generate certificate and explicitly target this keychain
+    # 3. Download or generate certificate into this keychain
     get_certificates(
       api_key: api_key,
       keychain_path: keychain_name,
@@ -38,7 +38,7 @@ platform :ios do
       api_key: api_key
     )
 
-    # 5. Build the archive
+    # 5. Compile the iOS app archive (.ipa)
     build_app(
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
