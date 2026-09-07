@@ -1,7 +1,66 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Generate and bundle a permanent distribution certificate"
+  desc "Build the app and upload it to TestFlight"
+  lane :beta do
+    app_identifier = "com.limonmedia.glovebox"
+    team_id = ENV["TEAM_ID"]
+
+    UI.user_error!("Missing TEAM_ID secret — add your Apple Developer Team ID as a repo secret named TEAM_ID") if team_id.nil? || team_id.empty?
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["KEY_ID"],
+      issuer_id: ENV["ISSUER_ID"],
+      key_content: ENV["KEY_CONTENT"],
+      is_key_content_base64: false,
+      in_house: false
+    )
+
+    # Fetch (or create) a distribution certificate + App Store provisioning profile
+    get_certificates(
+      api_key: api_key
+    )
+
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: app_identifier,
+      team_id: team_id
+    )
+
+    # Point the generated Xcode project at that profile/cert (manual signing)
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "ios/App/App.xcodeproj",
+      team_id: team_id,
+      code_sign_identity: "Apple Distribution",
+      bundle_identifier: app_identifier,
+      profile_name: ENV["sigh_#{app_identifier}_appstore_profile-name"]
+    )
+
+    # Bump the build number so each upload is unique
+    increment_build_number(
+      xcodeproj: "ios/App/App.xcodeproj",
+      build_number: ENV["GITHUB_RUN_NUMBER"] || Time.now.to_i.to_s
+    )
+
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          app_identifier => ENV["sigh_#{app_identifier}_appstore_profile-name"]
+        }
+      }
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Generate and bundle a permanent distribution certificate (manual/local use only)"
   lane :generate_p12 do
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
@@ -23,18 +82,14 @@ platform :ios do
       lock_when_sleeps: false
     )
 
-    # 1. Generate or fetch certificate
     get_certificates(
       api_key: api_key
     )
 
-    # 2. Export the installed certificate + private key into a .p12
     p12_path = File.expand_path("~/Desktop/dist_cert.p12")
     p12_password = "GloveBoxPassword123!"
 
     sh("security export -k ~/Library/Keychains/#{keychain_name}-db -t all -f pkcs12 -P '#{p12_password}' -o #{p12_path}")
-
-    # 3. Print the base64 string directly in the log
     sh("base64 -i #{p12_path} > /tmp/cert_base64.txt")
     puts "--- COPY EVERYTHING BETWEEN THESE LINES ---"
     puts File.read("/tmp/cert_base64.txt")
