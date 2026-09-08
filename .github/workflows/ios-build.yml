@@ -23,7 +23,10 @@ jobs:
         run: npx cap add ios || true
 
       - name: Generate App Icons and Splash Screens
-        run: npx @capacitor/assets generate --ios
+        run: |
+          cp resources/icon.png resources/icon-only.png
+          cp resources/icon.png resources/icon-foreground.png
+          npx @capacitor/assets generate --ios
 
       - name: Sync Capacitor iOS Project
         run: npx cap sync ios
