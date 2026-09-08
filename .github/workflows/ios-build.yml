@@ -19,8 +19,10 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Sync Capacitor iOS Project
-        run: npx cap sync ios
+      - name: Add and Sync Capacitor iOS Project
+        run: |
+          npx cap add ios || true
+          npx cap sync ios
 
       - name: Setup Ruby and Bundler
         uses: ruby/setup-ruby@v1
