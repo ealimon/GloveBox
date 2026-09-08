@@ -26,7 +26,8 @@ jobs:
         run: |
           cp resources/icon.png resources/icon-only.png
           cp resources/icon.png resources/icon-foreground.png
-          npx @capacitor/assets generate --ios --iconOnly
+          cp resources/icon.png resources/splash.png
+          npx @capacitor/assets generate --ios
 
       - name: Sync Capacitor iOS Project
         run: npx cap sync ios
