@@ -3,7 +3,7 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
-    # 1. Connect to App Store API
+    # 1. Connect to App Store Connect API
     api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
       issuer_id: ENV["ISSUER_ID"],
@@ -12,7 +12,7 @@ platform :ios do
       in_house: false
     )
 
-    # 2. Set up temporary keychain
+    # 2. Set up and configure temporary keychain
     keychain_name = "fastlane_tmp_keychain"
     keychain_path = File.expand_path("~/Library/Keychains/#{keychain_name}-db")
     keychain_password = "glovebox_build_temp"
@@ -26,7 +26,10 @@ platform :ios do
       lock_when_sleeps: false
     )
 
-    # 3. Decode and import the P12 certificate
+    # Ensure the keychain is in the active search list
+    sh("security list-keychains -d user -s #{keychain_path} $(security list-keychains -d user | tr -d '\"')")
+
+    # 3. Decode and import the distribution certificate
     sh("echo \"$DISTRIBUTION_P12_BASE64\" | base64 --decode > /tmp/dist_cert.p12")
     import_certificate(
       keychain_name: keychain_name,
@@ -35,7 +38,7 @@ platform :ios do
       certificate_password: ENV["DISTRIBUTION_P12_PASSWORD"]
     )
 
-    # 4. Fetch matching provisioning profile
+    # 4. Fetch the matching provisioning profile
     get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
