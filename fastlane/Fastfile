@@ -29,13 +29,13 @@ platform :ios do
     # Decode the P12 file
     sh("echo \"$DISTRIBUTION_P12_BASE64\" | base64 --decode > /tmp/dist_cert.p12")
 
-    # Native macOS security import into the custom keychain
+    # Native macOS security import into custom keychain
     sh("security import /tmp/dist_cert.p12 -k #{keychain_path} -P '#{ENV["DISTRIBUTION_P12_PASSWORD"]}' -T /usr/bin/codesign -T /usr/bin/security")
     sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k #{keychain_password} #{keychain_path}")
     sh("security list-keychains -d user -s #{keychain_path} $(security list-keychains -d user | tr -d '\"')")
 
     # 3. Fetch matching provisioning profile
-    get_provisioning_profile(
+    profile_name = get_provisioning_profile(
       app_identifier: ENV["BUNDLE_ID"],
       api_key: api_key
     )
@@ -45,11 +45,11 @@ platform :ios do
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
       export_method: "app-store",
-      xcargs: "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{ENV["SIGH_NAME"]}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{lane_context[SharedValues::SIGH_UUID]}' CODE_SIGN_IDENTITY='Apple Distribution'",
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {
-          ENV["BUNDLE_ID"] => ENV["SIGH_NAME"]
+          ENV["BUNDLE_ID"] => lane_context[SharedValues::SIGH_NAME] || lane_context[SharedValues::SIGH_UUID]
         }
       }
     )
