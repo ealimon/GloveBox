@@ -19,10 +19,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Add and Sync Capacitor iOS Project
-        run: |
-          npx cap add ios || true
-          npx cap sync ios
+      - name: Add iOS Platform
+        run: npx cap add ios || true
+
+      - name: Generate App Icons and Splash Screens
+        run: npx @capacitor/assets generate --ios
+
+      - name: Sync Capacitor iOS Project
+        run: npx cap sync ios
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
