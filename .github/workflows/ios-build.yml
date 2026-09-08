@@ -24,55 +24,55 @@ jobs:
 
       - name: Generate App Icons
         run: |
-          node -e '
-          const fs = require("fs");
-          const path = require("path");
-          const sharp = require("sharp");
+          ICON_DIR="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+          mkdir -p "$ICON_DIR"
+          SRC="resources/icon.png"
 
-          const iconDir = path.join("ios", "App", "App", "Assets.xcassets", "AppIcon.appiconset");
-          fs.mkdirSync(iconDir, { recursive: true });
+          # Native macOS image resizing
+          sips -z 40 40     "$SRC" --out "$ICON_DIR/AppIcon-20x20@2x.png"
+          sips -z 60 60     "$SRC" --out "$ICON_DIR/AppIcon-20x20@3x.png"
+          sips -z 58 58     "$SRC" --out "$ICON_DIR/AppIcon-29x29@2x.png"
+          sips -z 87 87     "$SRC" --out "$ICON_DIR/AppIcon-29x29@3x.png"
+          sips -z 80 80     "$SRC" --out "$ICON_DIR/AppIcon-40x40@2x.png"
+          sips -z 120 120   "$SRC" --out "$ICON_DIR/AppIcon-40x40@3x.png"
+          sips -z 120 120   "$SRC" --out "$ICON_DIR/AppIcon-60x60@2x.png"
+          sips -z 180 180   "$SRC" --out "$ICON_DIR/AppIcon-60x60@3x.png"
+          sips -z 20 20     "$SRC" --out "$ICON_DIR/AppIcon-20x20@1x.png"
+          sips -z 29 29     "$SRC" --out "$ICON_DIR/AppIcon-29x29@1x.png"
+          sips -z 40 40     "$SRC" --out "$ICON_DIR/AppIcon-40x40@1x.png"
+          sips -z 76 76     "$SRC" --out "$ICON_DIR/AppIcon-76x76@1x.png"
+          sips -z 152 152   "$SRC" --out "$ICON_DIR/AppIcon-76x76@2x.png"
+          sips -z 167 167   "$SRC" --out "$ICON_DIR/AppIcon-83.5x83.5@2x.png"
+          sips -z 1024 1024 "$SRC" --out "$ICON_DIR/AppIcon-512@2x.png"
 
-          const src = path.join("resources", "icon.png");
-
-          const sizes = [
-            { size: 20, scale: 2, idiom: "iphone" },
-            { size: 20, scale: 3, idiom: "iphone" },
-            { size: 29, scale: 2, idiom: "iphone" },
-            { size: 29, scale: 3, idiom: "iphone" },
-            { size: 40, scale: 2, idiom: "iphone" },
-            { size: 40, scale: 3, idiom: "iphone" },
-            { size: 60, scale: 2, idiom: "iphone" },
-            { size: 60, scale: 3, idiom: "iphone" },
-            { size: 20, scale: 1, idiom: "ipad" },
-            { size: 20, scale: 2, idiom: "ipad" },
-            { size: 29, scale: 1, idiom: "ipad" },
-            { size: 29, scale: 2, idiom: "ipad" },
-            { size: 40, scale: 1, idiom: "ipad" },
-            { size: 40, scale: 2, idiom: "ipad" },
-            { size: 76, scale: 1, idiom: "ipad" },
-            { size: 76, scale: 2, idiom: "ipad" },
-            { size: 83.5, scale: 2, idiom: "ipad" },
-            { size: 1024, scale: 1, idiom: "ios-marketing" }
-          ];
-
-          async function buildIcons() {
-            const images = [];
-            for (const item of sizes) {
-              const px = Math.round(item.size * item.scale);
-              const filename = `AppIcon-${item.size}x${item.size}@${item.scale}x.png`;
-              await sharp(src).resize(px, px).toFile(path.join(iconDir, filename));
-              images.push({
-                size: `${item.size}x${item.size}`,
-                idiom: item.idiom,
-                filename: filename,
-                scale: `${item.scale}x`
-              });
+          cat << 'EOF' > "$ICON_DIR/Contents.json"
+          {
+            "images": [
+              { "size": "20x20", "idiom": "iphone", "filename": "AppIcon-20x20@2x.png", "scale": "2x" },
+              { "size": "20x20", "idiom": "iphone", "filename": "AppIcon-20x20@3x.png", "scale": "3x" },
+              { "size": "29x29", "idiom": "iphone", "filename": "AppIcon-29x29@2x.png", "scale": "2x" },
+              { "size": "29x29", "idiom": "iphone", "filename": "AppIcon-29x29@3x.png", "scale": "3x" },
+              { "size": "40x40", "idiom": "iphone", "filename": "AppIcon-40x40@2x.png", "scale": "2x" },
+              { "size": "40x40", "idiom": "iphone", "filename": "AppIcon-40x40@3x.png", "scale": "3x" },
+              { "size": "60x60", "idiom": "iphone", "filename": "AppIcon-60x60@2x.png", "scale": "2x" },
+              { "size": "60x60", "idiom": "iphone", "filename": "AppIcon-60x60@3x.png", "scale": "3x" },
+              { "size": "20x20", "idiom": "ipad", "filename": "AppIcon-20x20@1x.png", "scale": "1x" },
+              { "size": "20x20", "idiom": "ipad", "filename": "AppIcon-20x20@2x.png", "scale": "2x" },
+              { "size": "29x29", "idiom": "ipad", "filename": "AppIcon-29x29@1x.png", "scale": "1x" },
+              { "size": "29x29", "idiom": "ipad", "filename": "AppIcon-29x29@2x.png", "scale": "2x" },
+              { "size": "40x40", "idiom": "ipad", "filename": "AppIcon-40x40@1x.png", "scale": "1x" },
+              { "size": "40x40", "idiom": "ipad", "filename": "AppIcon-40x40@2x.png", "scale": "2x" },
+              { "size": "76x76", "idiom": "ipad", "filename": "AppIcon-76x76@1x.png", "scale": "1x" },
+              { "size": "76x76", "idiom": "ipad", "filename": "AppIcon-76x76@2x.png", "scale": "2x" },
+              { "size": "83.5x83.5", "idiom": "ipad", "filename": "AppIcon-83.5x83.5@2x.png", "scale": "2x" },
+              { "size": "1024x1024", "idiom": "ios-marketing", "filename": "AppIcon-512@2x.png", "scale": "1x" }
+            ],
+            "info": {
+              "version": 1,
+              "author": "xcode"
             }
-            fs.writeFileSync(path.join(iconDir, "Contents.json"), JSON.stringify({ images, info: { version: 1, author: "xcode" } }, null, 2));
-            console.log("iOS icons generated successfully!");
           }
-          buildIcons();
-          '
+          EOF
 
       - name: Sync Capacitor iOS Project
         run: npx cap sync ios
