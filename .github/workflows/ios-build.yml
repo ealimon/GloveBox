@@ -24,10 +24,55 @@ jobs:
 
       - name: Generate App Icons
         run: |
-          cp resources/icon.png resources/icon-only.png
-          cp resources/icon.png resources/icon-foreground.png
-          cp resources/icon.png resources/splash.png
-          npx @capacitor/assets generate --ios
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+          const sharp = require("sharp");
+
+          const iconDir = path.join("ios", "App", "App", "Assets.xcassets", "AppIcon.appiconset");
+          fs.mkdirSync(iconDir, { recursive: true });
+
+          const src = path.join("resources", "icon.png");
+
+          const sizes = [
+            { size: 20, scale: 2, idiom: "iphone" },
+            { size: 20, scale: 3, idiom: "iphone" },
+            { size: 29, scale: 2, idiom: "iphone" },
+            { size: 29, scale: 3, idiom: "iphone" },
+            { size: 40, scale: 2, idiom: "iphone" },
+            { size: 40, scale: 3, idiom: "iphone" },
+            { size: 60, scale: 2, idiom: "iphone" },
+            { size: 60, scale: 3, idiom: "iphone" },
+            { size: 20, scale: 1, idiom: "ipad" },
+            { size: 20, scale: 2, idiom: "ipad" },
+            { size: 29, scale: 1, idiom: "ipad" },
+            { size: 29, scale: 2, idiom: "ipad" },
+            { size: 40, scale: 1, idiom: "ipad" },
+            { size: 40, scale: 2, idiom: "ipad" },
+            { size: 76, scale: 1, idiom: "ipad" },
+            { size: 76, scale: 2, idiom: "ipad" },
+            { size: 83.5, scale: 2, idiom: "ipad" },
+            { size: 1024, scale: 1, idiom: "ios-marketing" }
+          ];
+
+          async function buildIcons() {
+            const images = [];
+            for (const item of sizes) {
+              const px = Math.round(item.size * item.scale);
+              const filename = `AppIcon-${item.size}x${item.size}@${item.scale}x.png`;
+              await sharp(src).resize(px, px).toFile(path.join(iconDir, filename));
+              images.push({
+                size: `${item.size}x${item.size}`,
+                idiom: item.idiom,
+                filename: filename,
+                scale: `${item.scale}x`
+              });
+            }
+            fs.writeFileSync(path.join(iconDir, "Contents.json"), JSON.stringify({ images, info: { version: 1, author: "xcode" } }, null, 2));
+            console.log("iOS icons generated successfully!");
+          }
+          buildIcons();
+          '
 
       - name: Sync Capacitor iOS Project
         run: npx cap sync ios
