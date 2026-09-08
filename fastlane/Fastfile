@@ -40,7 +40,7 @@ platform :ios do
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
       export_method: "app-store",
-      xcargs: "SKIP_INSTALL=NO CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{lane_context[SharedValues::SIGH_UUID]}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "TARGET_BUILD_DIR='$(BUILT_PRODUCTS_DIR)' CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='#{lane_context[SharedValues::SIGH_UUID]}' CODE_SIGN_IDENTITY='Apple Distribution'",
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {
