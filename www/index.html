@@ -187,23 +187,50 @@
             }).join('');
         }
 
-        function exportToCSV() {
+        async function exportToCSV() {
             const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            if (logs.length === 0) return alert("No logs to export!");
+            if (logs.length === 0) { alert("No logs to export!"); return; }
+
             let csv = "Date,Car,Service,Mileage\n";
             logs.forEach(l => {
                 csv += `"${l.date}","${l.carName.replace(/"/g, '""')}","${l.type.replace(/"/g, '""')}",${l.mileage}\n`;
             });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', 'GloveBox_Maintenance_History.csv');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            alert("Success! Check your device 'Downloads' folder for the CSV file.");
+
+            const fileName = `GloveBox_Maintenance_History_${Date.now()}.csv`;
+            const plugins = window.Capacitor && window.Capacitor.Plugins;
+
+            if (plugins && plugins.Filesystem && plugins.Share) {
+                // Native path: write to app cache, then hand off to the iOS Share Sheet
+                // so the user can actually save it to Files, AirDrop it, email it, etc.
+                try {
+                    const { uri } = await plugins.Filesystem.writeFile({
+                        path: fileName,
+                        data: csv,
+                        directory: 'CACHE',
+                        encoding: 'utf8'
+                    });
+                    await plugins.Share.share({
+                        title: 'GloveBox Maintenance History',
+                        url: uri,
+                        dialogTitle: 'Save or share your CSV'
+                    });
+                } catch (err) {
+                    console.error('CSV export failed', err);
+                    alert("Couldn't export CSV: " + (err && err.message ? err.message : err));
+                }
+            } else {
+                // Fallback for testing in a plain desktop browser (no native plugins available)
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download', fileName);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
         }
 
         function deleteLog(id) {
