@@ -1,61 +1,105 @@
+require "base64"
+
 default_platform(:ios)
 
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
-    # 1. Decode P8 App Store Connect API Key to disk
-    sh("echo \"$KEY_CONTENT\" | base64 --decode > /tmp/AuthKey.p8")
+    app_identifier = ENV["BUNDLE_ID"]
+    team_id = ENV["TEAM_ID"]
+    UI.user_error!("Missing TEAM_ID secret") if team_id.to_s.empty?
+    UI.user_error!("Missing BUNDLE_ID env var") if app_identifier.to_s.empty?
 
-    app_store_connect_api_key(
+    # NOTE: KEY_CONTENT holds the raw .p8 file text as-is - it is NOT base64-encoded,
+    # so it must be written directly, never run through base64 --decode.
+    key_path = "/tmp/AuthKey.p8"
+    File.write(key_path, ENV["KEY_CONTENT"])
+
+    api_key = app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
       issuer_id: ENV["ISSUER_ID"],
-      key_filepath: "/tmp/AuthKey.p8",
+      key_filepath: key_path,
       in_house: false
     )
 
-    # 2. Setup temporary keychain for CI
+    keychain_name = "temporary_keychain"
+    keychain_password = "temporary_password"
+
     create_keychain(
-      name: "temporary_keychain",
-      password: "temporary_password",
+      name: keychain_name,
+      password: keychain_password,
       default_keychain: true,
       unlock: true,
       timeout: 3600,
       lock_when_sleeps: false
     )
 
-    # 3. Decode & import distribution certificate
-    sh("echo \"$DISTRIBUTION_P12_BASE64\" | base64 --decode > /tmp/dist_cert.p12")
+    p12_path = "/tmp/dist_cert.p12"
+    File.open(p12_path, "wb") { |f| f.write(Base64.decode64(ENV["DISTRIBUTION_P12_BASE64"])) }
+
     import_certificate(
-      keychain_name: "temporary_keychain",
-      keychain_password: "temporary_password",
-      certificate_path: "/tmp/dist_cert.p12",
+      keychain_name: keychain_name,
+      keychain_password: keychain_password,
+      certificate_path: p12_path,
       certificate_password: ENV["DISTRIBUTION_P12_PASSWORD"]
     )
 
-    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temporary_password temporary_keychain")
-    sh("security list-keychains -d user -s /Users/runner/Library/Keychains/temporary_keychain-db $(security list-keychains -d user | tr -d '\"')")
+    # Prevents the CI runner from hanging on a keychain-access permission prompt
+    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k #{keychain_password} #{keychain_name}")
+    sh("security list-keychains -d user -s /Users/runner/Library/Keychains/#{keychain_name}-db $(security list-keychains -d user | tr -d '\"')")
 
-    # 4. Fetch the provisioning profile
     get_provisioning_profile(
-      app_identifier: ENV["BUNDLE_ID"],
+      api_key: api_key,
+      app_identifier: app_identifier,
+      team_id: team_id,
       output_path: "/tmp"
     )
 
-    # 5. Build and package the archive
+    # sigh sets this directly - more reliable than guessing its dynamically-named ENV key
+    profile_name = ENV["SIGH_NAME"]
+    UI.user_error!("get_provisioning_profile did not set SIGH_NAME - profile fetch likely failed") if profile_name.to_s.empty?
+
+    # Point the generated Xcode project at that profile/cert (manual signing).
+    # Without this, xcodebuild falls back to Automatic signing during the archive
+    # step and fails in CI, regardless of what export_options says later.
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "ios/App/App.xcodeproj",
+      targets: ["App"],
+      team_id: team_id,
+      code_sign_identity: "Apple Distribution",
+      bundle_identifier: app_identifier,
+      profile_name: profile_name
+    )
+
+    # Capacitor defaults to a 13.0 minimum - Apple requires 15.0+ starting Spring 2027
+    sh("cd .. && ruby -rxcodeproj -e \"
+      project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+      project.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' }
+      project.targets.each { |t| t.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' } }
+      project.save
+    \"")
+
+    # Unique build number per upload - without this, every upload after the
+    # first gets rejected by App Store Connect for reusing a build number
+    increment_build_number(
+      xcodeproj: "ios/App/App.xcodeproj",
+      build_number: ENV["GITHUB_RUN_NUMBER"] || Time.now.to_i.to_s
+    )
+
     build_app(
       workspace: "ios/App/App.xcworkspace",
       scheme: "App",
       export_method: "app-store",
       export_options: {
-        signingStyle: "manual",
         provisioningProfiles: {
-          ENV["BUNDLE_ID"] => lane_context[SharedValues::SIGH_NAME] || lane_context[SharedValues::SIGH_UUID]
+          app_identifier => profile_name
         }
       }
     )
 
-    # 6. Upload directly to TestFlight
     upload_to_testflight(
+      api_key: api_key,
       skip_waiting_for_build_processing: true
     )
   end
