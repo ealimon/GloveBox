@@ -28,6 +28,7 @@ jobs:
         run: |
           npm install
           npx cap add ios
+          npx capacitor-assets generate --ios
           npx cap sync ios
 
       - name: Setup Ruby for Fastlane
@@ -56,5 +57,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: distribution-cert
-          path: cert_base64.txt
-          retention-days: 1
+          path
