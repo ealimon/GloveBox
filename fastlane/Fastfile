@@ -72,11 +72,21 @@ platform :ios do
       profile_name: profile_name
     )
 
-    # Capacitor defaults to a 13.0 minimum - Apple requires 15.0+ starting Spring 2027
+    # Capacitor defaults to a 13.0 minimum - Apple requires 15.0+ starting Spring 2027.
+    # Also restrict to iPhone only (TARGETED_DEVICE_FAMILY "1") - Capacitor defaults
+    # to Universal ("1,2" - iPhone + iPad), and this UI isn't designed for iPad.
     sh("cd .. && ruby -rxcodeproj -e \"
       project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
-      project.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' }
-      project.targets.each { |t| t.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' } }
+      project.build_configurations.each do |c|
+        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+        c.build_settings['TARGETED_DEVICE_FAMILY'] = '1'
+      end
+      project.targets.each do |t|
+        t.build_configurations.each do |c|
+          c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+          c.build_settings['TARGETED_DEVICE_FAMILY'] = '1'
+        end
+      end
       project.save
     \"")
 
