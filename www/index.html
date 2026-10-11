@@ -77,28 +77,28 @@
 
         <!-- Reminders -->
         <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border border-slate-100">
-            <h2 class="text-base font-black uppercase tracking-widest text-slate-500 mb-1">Service Reminders</h2>
-            <p class="text-sm text-slate-500 mb-4">Get a notification when a service comes due by date. Mileage-based reminders show in the app, because GloveBox only knows the mileage you enter.</p>
+            <h2 class="text-lg font-black uppercase tracking-widest text-slate-500 mb-1">Service Reminders</h2>
+            <p class="text-base text-slate-500 mb-4">Get a notification when a service comes due by date. Mileage-based reminders show in the app, because GloveBox only knows the mileage you enter.</p>
             <div id="reminderList" class="space-y-3 mb-5"></div>
             <form id="reminderForm" class="space-y-4 border-t border-slate-100 pt-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="remCar" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Car</label>
+                        <label for="remCar" class="block text-sm font-bold uppercase text-slate-600 mb-1.5 ml-1">Car</label>
                         <select id="remCar" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required></select>
                     </div>
                     <div>
-                        <label for="remType" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
+                        <label for="remType" class="block text-sm font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
                         <input type="text" id="remType" list="serviceOptions" placeholder="Oil Change" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
                         <datalist id="serviceOptions"></datalist>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="remDistance" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (<span data-unit>mi</span>)</label>
+                        <label for="remDistance" class="block text-sm font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (<span data-unit>mi</span>)</label>
                         <input type="number" inputmode="numeric" min="1" step="1" id="remDistance" placeholder="5000" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
                     </div>
                     <div>
-                        <label for="remMonths" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (months)</label>
+                        <label for="remMonths" class="block text-sm font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (months)</label>
                         <input type="number" inputmode="numeric" min="1" step="1" id="remMonths" placeholder="6" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
                     </div>
                 </div>

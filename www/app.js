@@ -295,14 +295,14 @@ function renderReminders() {
         <div class="border rounded-xl p-3.5 flex justify-between items-center gap-2 ${STATUS_STYLE[s.status]}">
             <div class="min-w-0">
                 <p class="font-bold break-words">${esc(r.carName)} &middot; ${esc(r.type)}</p>
-                <p class="text-sm">Every ${esc(every)}</p>
-                <p class="text-sm font-semibold">${detail}</p>
+                <p class="text-base">Every ${esc(every)}</p>
+                <p class="text-base font-semibold">${detail}</p>
             </div>
             <button data-action="delete-reminder" data-id="${r.id}" class="p-2 opacity-70" aria-label="Delete reminder">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>`;
-    }).join('') : '<p class="text-sm text-slate-400 italic">No reminders yet.</p>';
+    }).join('') : '<p class="text-base text-slate-400 italic">No reminders yet.</p>';
 
     const due = statuses.filter((s) => s.status === 'overdue' || s.status === 'soon')
         .sort((a, b) => (a.status === 'overdue' ? 0 : 1) - (b.status === 'overdue' ? 0 : 1));
@@ -312,7 +312,7 @@ function renderReminders() {
     banner.innerHTML = `
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-2">
         <h2 class="text-base font-black uppercase tracking-widest text-slate-500">Needs Attention</h2>
-        ${due.map((s) => `<div class="border rounded-lg px-3 py-2 ${STATUS_STYLE[s.status]}"><span class="font-bold">${esc(s.r.carName)} &middot; ${esc(s.r.type)}</span><br><span class="text-sm">${s.parts.join(' &bull; ')}</span></div>`).join('')}
+        ${due.map((s) => `<div class="border rounded-lg px-3 py-2 ${STATUS_STYLE[s.status]}"><span class="font-bold">${esc(s.r.carName)} &middot; ${esc(s.r.type)}</span><br><span class="text-base">${s.parts.join(' &bull; ')}</span></div>`).join('')}
     </div>`;
 }
 
