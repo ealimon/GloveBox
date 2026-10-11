@@ -2,21 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>GloveBox | Car Maintenance</title>
-    
+
     <!-- PWA & Mobile Optimization -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="GloveBox">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .log-card { transition: transform 0.1s ease; }
-        .log-card:active { transform: scale(0.98); }
-        input, select { font-size: 18px !important; }
-        .app-header { padding-top: calc(1.25rem + env(safe-area-inset-top)); }
-    </style>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-50 font-sans flex flex-col min-h-screen text-slate-900 text-base">
 
@@ -26,70 +22,130 @@
     </nav>
 
     <main class="max-w-md mx-auto px-4 py-6 flex-grow w-full pb-12">
-        
+
+        <!-- Due soon banner -->
+        <div id="dueBanner" class="hidden mb-6"></div>
+
         <!-- Input Form -->
         <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border border-slate-100">
-            <h2 class="text-base font-black uppercase tracking-widest text-slate-500 mb-4">Add New Entry</h2>
+            <h2 id="formTitle" class="text-base font-black uppercase tracking-widest text-slate-500 mb-4">Add New Entry</h2>
             <form id="logForm" class="space-y-5">
-                
+
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Car Nickname</label>
-                    <input type="text" id="carName" placeholder="e.g. Jeep Wrangler" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base transition" required>
+                    <label for="carName" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Car Nickname</label>
+                    <input type="text" id="carName" list="carOptions" autocomplete="off" placeholder="e.g. Jeep Wrangler" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base transition" required>
+                    <datalist id="carOptions"></datalist>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
-                        <select id="serviceType" onchange="toggleCustomServiceInput()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
-                            <option>Oil Change</option>
-                            <option>Tire Rotation</option>
-                            <option>Brakes</option>
-                            <option>Air Filter</option>
-                            <option>Inspection</option>
-                            <option>Repair</option>
-                            <option value="custom">Custom (Enter manually)...</option>
-                        </select>
+                        <label for="serviceType" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
+                        <select id="serviceType" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Mileage</label>
-                        <input type="number" id="mileage" placeholder="55000" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
+                        <label for="mileage" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Mileage (<span data-unit>mi</span>)</label>
+                        <input type="number" inputmode="numeric" min="0" step="1" id="mileage" placeholder="55000" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
                     </div>
                 </div>
 
                 <!-- Custom Service Input (Hidden by default) -->
                 <div id="customServiceContainer" class="hidden">
-                    <label class="block text-xs font-bold uppercase text-blue-600 mb-1.5 ml-1">Specify Custom Service</label>
+                    <label for="customService" class="block text-xs font-bold uppercase text-blue-600 mb-1.5 ml-1">Specify Custom Service</label>
                     <input type="text" id="customService" placeholder="e.g. Spark Plugs, Coolant Flush" class="w-full p-3.5 bg-blue-50/50 border border-blue-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base transition">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Date</label>
-                    <input type="date" id="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="date" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Date</label>
+                        <input type="date" id="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
+                    </div>
+                    <div>
+                        <label for="cost" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Cost (optional)</label>
+                        <input type="number" inputmode="decimal" min="0" step="0.01" id="cost" placeholder="0.00" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                    </div>
                 </div>
-                
-                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-sm">Save Service Log</button>
+
+                <div>
+                    <label for="notes" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Notes / Shop (optional)</label>
+                    <input type="text" id="notes" placeholder="e.g. Jiffy Lube, synthetic 5W-30" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 active:bg-blue-700 transition-all mt-2 uppercase tracking-widest text-sm">Save Service Log</button>
+                <button type="button" id="cancelEditBtn" data-action="cancel-edit" class="hidden w-full text-slate-600 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">Cancel Edit</button>
+            </form>
+        </div>
+
+        <!-- Reminders -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border border-slate-100">
+            <h2 class="text-base font-black uppercase tracking-widest text-slate-500 mb-1">Service Reminders</h2>
+            <p class="text-sm text-slate-500 mb-4">Get a notification when a service comes due by date. Mileage-based reminders show in the app, because GloveBox only knows the mileage you enter.</p>
+            <div id="reminderList" class="space-y-3 mb-5"></div>
+            <form id="reminderForm" class="space-y-4 border-t border-slate-100 pt-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="remCar" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Car</label>
+                        <select id="remCar" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required></select>
+                    </div>
+                    <div>
+                        <label for="remType" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Service</label>
+                        <input type="text" id="remType" list="serviceOptions" placeholder="Oil Change" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base" required>
+                        <datalist id="serviceOptions"></datalist>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="remDistance" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (<span data-unit>mi</span>)</label>
+                        <input type="number" inputmode="numeric" min="1" step="1" id="remDistance" placeholder="5000" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                    </div>
+                    <div>
+                        <label for="remMonths" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Every (months)</label>
+                        <input type="number" inputmode="numeric" min="1" step="1" id="remMonths" placeholder="6" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold active:bg-slate-700 transition-all uppercase tracking-widest text-sm">Add Reminder</button>
             </form>
         </div>
 
         <!-- History Header -->
-        <div class="flex justify-between items-end mb-4 px-1">
+        <div class="flex justify-between items-end mb-3 px-1">
             <div>
                 <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Service History</h2>
                 <p id="logCount" class="text-xs font-bold text-slate-500 uppercase tracking-tight mt-0.5">0 Logs Total</p>
             </div>
-            <button onclick="exportToCSV()" class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3.5 py-2.5 rounded-lg hover:bg-blue-100 transition">
+            <button data-action="export-csv" class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3.5 py-2.5 rounded-lg hover:bg-blue-100 transition">
                 📥 Export CSV
             </button>
         </div>
-        
+
+        <!-- Car filter chips -->
+        <div id="carFilter" class="flex gap-2 overflow-x-auto pb-3 mb-1 -mx-1 px-1"></div>
+
+        <!-- Summary for current filter -->
+        <div id="summary" class="mb-4"></div>
+
         <!-- Log List -->
-        <div id="logList" class="space-y-3">
-            <!-- Dynamic content -->
+        <div id="logList" class="space-y-3"></div>
+
+        <!-- Backup & settings -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mt-12 border border-slate-100">
+            <h2 class="text-base font-black uppercase tracking-widest text-slate-500 mb-1">Backup &amp; Settings</h2>
+            <p class="text-sm text-slate-500 mb-4">Your data lives only on this device. Save a backup file now and then so you can restore it on a new phone.</p>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <button data-action="export-json" class="bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-widest py-3 rounded-lg">Save Backup</button>
+                <button data-action="restore-merge" class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest py-3 rounded-lg">Restore (Merge)</button>
+            </div>
+            <button data-action="restore-replace" class="w-full bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest py-3 rounded-lg mb-5">Restore (Replace All)</button>
+            <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+            <label for="unitSelect" class="block text-xs font-bold uppercase text-slate-600 mb-1.5 ml-1">Distance Unit</label>
+            <select id="unitSelect" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base">
+                <option value="mi">Miles</option>
+                <option value="km">Kilometers</option>
+            </select>
         </div>
 
         <!-- Utility: Clear All -->
-        <div class="mt-12 text-center">
-            <button onclick="clearAllData()" class="text-xs font-bold text-slate-600 uppercase tracking-widest hover:text-red-600 transition p-2">
+        <div class="mt-8 text-center">
+            <button data-action="clear" class="text-xs font-bold text-slate-600 uppercase tracking-widest hover:text-red-600 transition p-2">
                 Clear All Local Data
             </button>
         </div>
@@ -97,157 +153,9 @@
 
     <!-- Footer -->
     <footer class="w-full py-8 text-center text-slate-500 text-sm mt-auto border-t border-slate-100 bg-white">
-        <p>Design by <a href="https://www.Limon.Media" target="_blank" class="font-black text-blue-600 uppercase tracking-tight hover:text-blue-800 transition">Limon Media</a></p>
+        <p>Design by <a href="https://www.Limon.Media" target="_blank" rel="noopener" class="font-black text-blue-600 uppercase tracking-tight hover:text-blue-800 transition">Limon Media</a></p>
     </footer>
 
-    <script>
-        const logForm = document.getElementById('logForm');
-        const logList = document.getElementById('logList');
-        const logCount = document.getElementById('logCount');
-        const serviceSelect = document.getElementById('serviceType');
-        const customContainer = document.getElementById('customServiceContainer');
-        const customInput = document.getElementById('customService');
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            displayLogs();
-        });
-
-        function toggleCustomServiceInput() {
-            if (serviceSelect.value === 'custom') {
-                customContainer.classList.remove('hidden');
-                customInput.required = true;
-                customInput.focus();
-            } else {
-                customContainer.classList.add('hidden');
-                customInput.required = false;
-                customInput.value = '';
-            }
-        }
-
-        logForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            let finalServiceType = serviceSelect.value;
-            if (finalServiceType === 'custom') {
-                finalServiceType = customInput.value.trim() || 'Custom Service';
-            }
-            
-            const log = {
-                id: Date.now(),
-                carName: document.getElementById('carName').value.trim(),
-                type: finalServiceType,
-                mileage: document.getElementById('mileage').value,
-                date: document.getElementById('date').value
-            };
-
-            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            logs.push(log);
-            localStorage.setItem('carLogs', JSON.stringify(logs));
-
-            const currentCar = document.getElementById('carName').value;
-            logForm.reset();
-            
-            // Restore defaults
-            document.getElementById('carName').value = currentCar;
-            document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            toggleCustomServiceInput();
-            
-            displayLogs();
-        });
-
-        function displayLogs() {
-            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            logCount.innerText = `${logs.length} ${logs.length === 1 ? 'Log' : 'Logs'} Total`;
-            if (logs.length === 0) {
-                logList.innerHTML = `<div class="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 italic text-base">No records found.</div>`;
-                return;
-            }
-            logList.innerHTML = logs.sort((a,b) => b.id - a.id).map(log => {
-                const dateObj = new Date(log.date + 'T00:00:00');
-                const formattedDate = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-                return `
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 log-card animate-in fade-in duration-300">
-                    <div class="flex justify-between items-start">
-                        <div class="overflow-hidden">
-                            <!-- Larger Car Nickname Badge -->
-                            <span class="text-sm font-black uppercase bg-slate-900 text-white px-3.5 py-1.5 rounded-lg tracking-wide italic inline-block shadow-sm">
-                                ${log.carName}
-                            </span>
-                            <p class="font-bold text-slate-800 mt-2.5 text-xl leading-snug tracking-tight">${log.type}</p>
-                            <p class="text-base text-slate-600 font-medium mt-1">${formattedDate} • ${Number(log.mileage).toLocaleString()} miles</p>
-                        </div>
-                        <button onclick="deleteLog(${log.id})" class="text-slate-300 hover:text-red-500 transition-colors p-2" aria-label="Delete entry">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        async function exportToCSV() {
-            const logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-            if (logs.length === 0) { alert("No logs to export!"); return; }
-
-            let csv = "Date,Car,Service,Mileage\n";
-            logs.forEach(l => {
-                csv += `"${l.date}","${l.carName.replace(/"/g, '""')}","${l.type.replace(/"/g, '""')}",${l.mileage}\n`;
-            });
-
-            const fileName = `GloveBox_Maintenance_History_${Date.now()}.csv`;
-            const plugins = window.Capacitor && window.Capacitor.Plugins;
-
-            if (plugins && plugins.Filesystem && plugins.Share) {
-                // Native path: write to app cache, then hand off to the iOS Share Sheet
-                // so the user can actually save it to Files, AirDrop it, email it, etc.
-                try {
-                    const { uri } = await plugins.Filesystem.writeFile({
-                        path: fileName,
-                        data: csv,
-                        directory: 'CACHE',
-                        encoding: 'utf8'
-                    });
-                    await plugins.Share.share({
-                        title: 'GloveBox Maintenance History',
-                        url: uri,
-                        dialogTitle: 'Save or share your CSV'
-                    });
-                } catch (err) {
-                    console.error('CSV export failed', err);
-                    alert("Couldn't export CSV: " + (err && err.message ? err.message : err));
-                }
-            } else {
-                // Fallback for testing in a plain desktop browser (no native plugins available)
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.setAttribute('hidden', '');
-                a.setAttribute('href', url);
-                a.setAttribute('download', fileName);
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }
-        }
-
-        function deleteLog(id) {
-            if(confirm("Delete this record?")) {
-                let logs = JSON.parse(localStorage.getItem('carLogs') || '[]');
-                logs = logs.filter(l => l.id !== id);
-                localStorage.setItem('carLogs', JSON.stringify(logs));
-                displayLogs();
-            }
-        }
-
-        function clearAllData() {
-            if(confirm("DANGER: This will permanently delete ALL logs from this device. Proceed?")) {
-                localStorage.removeItem('carLogs');
-                displayLogs();
-            }
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

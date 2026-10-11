@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { -webkit-tap-highlight-color: transparent; }
+.log-card { transition: transform 0.1s ease; }
+.log-card:active { transform: scale(0.98); }
+input, select, textarea { font-size: 18px !important; }
+.app-header { padding-top: calc(1.25rem + env(safe-area-inset-top)); }

@@ -1,4 +1,5 @@
 require "base64"
+require "json"
 
 default_platform(:ios)
 
@@ -75,16 +76,23 @@ platform :ios do
     # Capacitor defaults to a 13.0 minimum - Apple requires 15.0+ starting Spring 2027.
     # Also restrict to iPhone only (TARGETED_DEVICE_FAMILY "1") - Capacitor defaults
     # to Universal ("1,2" - iPhone + iPad), and this UI isn't designed for iPad.
+    # MARKETING_VERSION (the version shown on the App Store) comes from package.json,
+    # so bump "version" there for each App Store release - it must be higher than
+    # the version already live.
+    app_version = JSON.parse(File.read("../package.json"))["version"]
+
     sh("cd .. && ruby -rxcodeproj -e \"
       project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
       project.build_configurations.each do |c|
         c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
         c.build_settings['TARGETED_DEVICE_FAMILY'] = '1'
+        c.build_settings['MARKETING_VERSION'] = '#{app_version}'
       end
       project.targets.each do |t|
         t.build_configurations.each do |c|
           c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
           c.build_settings['TARGETED_DEVICE_FAMILY'] = '1'
+          c.build_settings['MARKETING_VERSION'] = '#{app_version}'
         end
       end
       project.save

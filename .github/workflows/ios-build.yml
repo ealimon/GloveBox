@@ -19,6 +19,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Build CSS
+        run: npm run build
+
       - name: Add iOS Platform
         run: npx cap add ios || true
 

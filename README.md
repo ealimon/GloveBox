@@ -1,32 +1,35 @@
 # 🛠 GloveBox | Professional Car Maintenance Tracker
 
-**GloveBox** is a high-performance, privacy-first mobile web application designed by **Limon Media**. It allows vehicle owners to track service history across multiple cars with zero data tracking, zero accounts, and zero latency.
-
-
+**GloveBox** is a privacy-first mobile app designed by **Limon Media**. It tracks service history across multiple cars with zero data tracking, zero accounts, and zero latency.
 
 ## 🌟 Key Features
-- **Privacy-First:** Data is stored locally on your device via HTML5 LocalStorage. Your data never touches a server.
-- **Multi-Vehicle Support:** Easily tag entries by car nickname.
-- **Smart Defaults:** Automatically suggests today's date and remembers your last-used vehicle for rapid entry.
-- **Data Portability:** Export your entire history to a CSV file for backup or insurance purposes.
-- **PWA Ready:** Optimized for "Add to Home Screen" to provide a native app-like experience.
+- **Privacy-First:** Data is stored locally on your device. It never touches a server.
+- **Multi-Vehicle Support:** Tag entries by car nickname, filter history per car.
+- **Service Reminders:** "Every 5,000 mi / 6 months" per car and service. Date-based reminders send a local notification (iOS app); mileage-based ones show in the app.
+- **Cost & Notes:** Track what each service cost and where it was done, with totals per car.
+- **Edit Entries**, "miles since last service" counters, and a per-car current-mileage update.
+- **Backup & Restore:** Save a JSON backup, restore by merging or replacing.
+- **CSV Export:** Full history for insurance or resale.
+- **Miles or Kilometers.**
+- **PWA Ready:** Manifest and offline service worker for "Add to Home Screen".
 
-## 📥 Installation
-GloveBox is a Progressive Web App (PWA). No App Store download is required.
+## 🛠 Development
+- **Stack:** Vanilla JavaScript, Tailwind CSS 3 (compiled locally), Capacitor 6 for iOS
+- **Storage:** Browser LocalStorage (key `glovebox_v2`; v1.0 data in `carLogs` is migrated automatically and left in place)
 
-1. **Visit the App:** Navigate to your hosted URL.
-2. **Add to Home Screen:**
-   - **iOS (Safari):** Tap the Share icon (square with arrow) -> "Add to Home Screen."
-   - **Android (Chrome):** Tap the Menu (three dots) -> "Install App" or "Add to Home Screen."
+```bash
+npm install
+npm run build        # compiles Tailwind -> www/styles.css (re-run after changing classes)
+npx http-server www  # preview in a browser
+```
 
-## 🛠 Technical Specifications
-- **Framework:** Vanilla JavaScript (ES6+)
-- **Styling:** Tailwind CSS 3.0
-- **Storage:** Browser LocalStorage API
-- **Deployment:** Optimized for GitHub Pages or static hosting.
+## 📱 Releasing to the App Store
+1. Bump `"version"` in `package.json` (it becomes the App Store version; must be higher than the live one).
+2. Push to GitHub, then run the **Build & Upload to App Store Connect** workflow (Actions tab).
+3. Once the build finishes processing in App Store Connect (TestFlight), create the new version, select the build, add "What's New", and submit for review.
 
-## 💼 Business Use
-This application is part of the **Limon Media** digital product suite. Use it as a personal utility or as a base template for client projects.
+## 🔒 Privacy
+No accounts, no analytics, no ads, no network calls. All data stays on the device unless the user exports it.
 
 ---
 Designed with ❤️ by [Limon Media](https://www.Limon.Media)
